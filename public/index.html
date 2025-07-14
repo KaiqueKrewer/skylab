@@ -4,17 +4,14 @@
   <meta charset="UTF-8" />
   <title>Inventário de Jogos</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    body { font-family: Arial; margin: 20px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background-color: #f2f2f2; }
-    input, select { padding: 5px; margin-right: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #eee; }
   </style>
 </head>
 <body>
-
-  <h1>Inventário de Jogos</h1>
-
+  <h1>Inventário de Jogos</h>
   <form id="formJogo">
     <input type="hidden" id="id" />
     <input type="text" id="nome" placeholder="Nome do jogo" required />
@@ -27,39 +24,23 @@
     </select>
     <button type="submit">Adicionar Jogo</button>
   </form>
-
   <table id="tabelaJogos">
-    <thead>
-      <tr>
-        <th>ID</th><th>Nome</th><th>Plataforma</th><th>Status</th><th>Ações</th>
-      </tr>
-    </thead>
+    <thead><tr><th>ID</th><th>Nome</th><th>Plataforma</th><th>Status</th><th>Ações</th></tr></thead>
     <tbody></tbody>
   </table>
-
-<script>
-const apiBase = '/inventario-jogos/public'; // ajuste se necessário
+  <script>
+const apiBase = '/inventario-jogos/skylab/public';
 
 async function listarJogos() {
-  const response = await fetch(`${apiBase}/jogos`);
-  const jogos = await response.json();
-
+  const res = await fetch(`${apiBase}/jogos`);
+  const jogos = await res.json();
   const tbody = document.querySelector('#tabelaJogos tbody');
   tbody.innerHTML = '';
-
-  jogos.forEach(jogo => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${jogo.id}</td>
-      <td>${jogo.nome}</td>
-      <td>${jogo.plataforma}</td>
-      <td>${jogo.status}</td>
-      <td>
-        <button onclick="editarJogo(${jogo.id})">Editar</button>
-        <button onclick="deletarJogo(${jogo.id})">Excluir</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+  jogos.forEach(j => {
+    tbody.innerHTML += `<tr>
+      <td>${j.id}</td><td>${j.nome}</td><td>${j.plataforma}</td><td>${j.status}</td>
+      <td><button onclick="editarJogo(${j.id})">Editar</button><button onclick="deletarJogo(${j.id})">Excluir</button></td>
+    </tr>`;
   });
 }
 
@@ -72,46 +53,40 @@ function limparFormulario() {
 }
 
 async function deletarJogo(id) {
-  if (!confirm('Tem certeza que deseja excluir este jogo?')) return;
   await fetch(`${apiBase}/jogos/${id}`, { method: 'DELETE' });
   listarJogos();
 }
 
 async function editarJogo(id) {
-  const response = await fetch(`${apiBase}/jogos/${id}`);
-  const jogo = await response.json();
-
-  document.getElementById('id').value = jogo.id;
-  document.getElementById('nome').value = jogo.nome;
-  document.getElementById('plataforma').value = jogo.plataforma;
-  document.getElementById('status').value = jogo.status;
+  const res = await fetch(`${apiBase}/jogos/${id}`);
+  const j = await res.json();
+  document.getElementById('id').value = j.id;
+  document.getElementById('nome').value = j.nome;
+  document.getElementById('plataforma').value = j.plataforma;
+  document.getElementById('status').value = j.status;
   document.querySelector('#formJogo button').textContent = 'Atualizar Jogo';
 }
 
-document.getElementById('formJogo').addEventListener('submit', async (e) => {
+document.getElementById('formJogo').addEventListener('submit', async e => {
   e.preventDefault();
-
   const id = document.getElementById('id').value;
-  const nome = document.getElementById('nome').value;
-  const plataforma = document.getElementById('plataforma').value;
-  const status = document.getElementById('status').value;
-
+  const data = {
+    nome: document.getElementById('nome').value,
+    plataforma: document.getElementById('plataforma').value,
+    status: document.getElementById('status').value,
+  };
   const method = id ? 'PUT' : 'POST';
   const url = id ? `${apiBase}/jogos/${id}` : `${apiBase}/jogos`;
-
   await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nome, plataforma, status }),
+    body: JSON.stringify(data),
   });
-
   limparFormulario();
   listarJogos();
 });
 
-// Inicializa a listagem ao carregar
 listarJogos();
-</script>
-
+  </script>
 </body>
 </html>
