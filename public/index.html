@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inventário de Jogos</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: #f2f2f2; }
+    input, select { padding: 5px; margin-right: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Inventário de Jogos</h1>
+
+  <form id="formJogo">
+    <input type="hidden" id="id" />
+    <input type="text" id="nome" placeholder="Nome do jogo" required />
+    <input type="text" id="plataforma" placeholder="Plataforma" required />
+    <select id="status" required>
+      <option value="">Status</option>
+      <option value="completo">Completo</option>
+      <option value="em andamento">Em andamento</option>
+      <option value="não iniciado">Não iniciado</option>
+    </select>
+    <button type="submit">Adicionar Jogo</button>
+  </form>
+
+  <table id="tabelaJogos">
+    <thead>
+      <tr>
+        <th>ID</th><th>Nome</th><th>Plataforma</th><th>Status</th><th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+const apiBase = '/inventario-jogos/public'; // ajuste se necessário
+
+async function listarJogos() {
+  const response = await fetch(`${apiBase}/jogos`);
+  const jogos = await response.json();
+
+  const tbody = document.querySelector('#tabelaJogos tbody');
+  tbody.innerHTML = '';
+
+  jogos.forEach(jogo => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${jogo.id}</td>
+      <td>${jogo.nome}</td>
+      <td>${jogo.plataforma}</td>
+      <td>${jogo.status}</td>
+      <td>
+        <button onclick="editarJogo(${jogo.id})">Editar</button>
+        <button onclick="deletarJogo(${jogo.id})">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function limparFormulario() {
+  document.getElementById('id').value = '';
+  document.getElementById('nome').value = '';
+  document.getElementById('plataforma').value = '';
+  document.getElementById('status').value = '';
+  document.querySelector('#formJogo button').textContent = 'Adicionar Jogo';
+}
+
+async function deletarJogo(id) {
+  if (!confirm('Tem certeza que deseja excluir este jogo?')) return;
+  await fetch(`${apiBase}/jogos/${id}`, { method: 'DELETE' });
+  listarJogos();
+}
+
+async function editarJogo(id) {
+  const response = await fetch(`${apiBase}/jogos/${id}`);
+  const jogo = await response.json();
+
+  document.getElementById('id').value = jogo.id;
+  document.getElementById('nome').value = jogo.nome;
+  document.getElementById('plataforma').value = jogo.plataforma;
+  document.getElementById('status').value = jogo.status;
+  document.querySelector('#formJogo button').textContent = 'Atualizar Jogo';
+}
+
+document.getElementById('formJogo').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById('id').value;
+  const nome = document.getElementById('nome').value;
+  const plataforma = document.getElementById('plataforma').value;
+  const status = document.getElementById('status').value;
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `${apiBase}/jogos/${id}` : `${apiBase}/jogos`;
+
+  await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome, plataforma, status }),
+  });
+
+  limparFormulario();
+  listarJogos();
+});
+
+// Inicializa a listagem ao carregar
+listarJogos();
+</script>
+
+</body>
+</html>
