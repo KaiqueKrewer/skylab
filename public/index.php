@@ -3,18 +3,26 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
-
-$container = require __DIR__ . '/../container.php';
-AppFactory::setContainer($container);
+use App\Services\IGDBService;
 
 $app = AppFactory::create();
-$app->setBasePath('/inventario-jogos/skylab');
-
-$app->addRoutingMiddleware();
 $app->addErrorMiddleware(true, true, true);
+$app->setBasePath('/skylab/public'); // or '/skylab' if accessed at /skylab/
+$app->addRoutingMiddleware();
 
+$app->get('/', function ($request, $response, $args) {
+    $response->getBody()->write("Hello, Skylab!");
+    return $response;
+});
 
-(require __DIR__ . '/../src/routes/api.php')($app);
+$app->get('/public', function (\Psr\Http\Message\ServerRequestInterface $request, \Psr\Http\Message\ResponseInterface $response) {
+    // Example of using IGDBService
+    $igdbService = new IGDBService();
+    $games = $igdbService->getGames();
+    // You can process $games and return a response
+    $response->getBody()->write(json_encode($games));
+    return $response->withHeader('Content-Type', 'application/json');
 
+ });
 
 $app->run();
