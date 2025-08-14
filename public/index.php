@@ -7,7 +7,7 @@ use App\Services\IGDBService;
 
 $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
-$app->setBasePath('/skylab/public'); // or '/skylab' if accessed at /skylab/
+$app->setBasePath('/skylab/public');
 $app->addRoutingMiddleware();
 
 $app->get('/', function ($request, $response, $args) {
